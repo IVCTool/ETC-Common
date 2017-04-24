@@ -1,0 +1,5 @@
+apply from: "./.shared/libraries.gradle"
+
+project.group = 'msg134-common'
+project.version = "${ETC_FRA_CommonVersion}"
+apply from: "./.shared/commons.gradle"
