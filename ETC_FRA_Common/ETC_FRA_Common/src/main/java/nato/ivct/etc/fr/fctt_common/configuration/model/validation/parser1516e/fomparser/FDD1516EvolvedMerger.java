@@ -1,12 +1,11 @@
 package nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.fomparser;
 
-import nato.ivct.etc.fr.fctt_common.utils.FCTT_Constant;
-import nato.ivct.etc.fr.fctt_common.utils.FCTT_Environment;
+import java.io.File;
+import java.util.Iterator;
 
 import org.dom4j.Element;
 
-import java.io.File;
-import java.util.Iterator;
+import nato.ivct.etc.fr.fctt_common.utils.FCTT_Constant;
 
 /**
  * Merges BOM files into a main FDD file.<br>
@@ -26,11 +25,15 @@ public class FDD1516EvolvedMerger
 		_eFDD = XMLUtils.readFile(fddFile,_schemaFile);
 	}
 
-	private File getSchemaFile() {
-		File file = FCTT_Environment.getXSD_DIF_Path().toFile();
-		return file;
-	}
-
+// 2017/08/21 RMA Begin modification
+// In order to avoid using resource file in bin/resources directory and using file in src/main/resources directory
+// Not used anymore
+//	private File getSchemaFile() {
+//		File file = FCTT_Environment.getXSD_DIF_Path().toFile();
+//		return file;
+//	}
+// 2017/08/21 RMA End modification
+	
 	public void merge(File bomFile) throws Exception
 	{
 		Element eBOM = XMLUtils.readFile(bomFile,_schemaFile);

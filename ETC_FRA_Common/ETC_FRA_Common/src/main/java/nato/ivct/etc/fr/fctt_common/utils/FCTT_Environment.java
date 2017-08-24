@@ -26,25 +26,31 @@ public class FCTT_Environment
 		return lResourcesDirectory;
 	}	
 	
-	/**
-	 * @return The file XSD
-	 */
-	public static Path getXSD_FCTT_Path() 
-	{
-		Path lXSDPath = Paths.get(FCTT_Environment.getPathResources().toString(), FCTT_Constant.FILENAME_XSD_FCTT_1516_2010);
-		
-		return lXSDPath;
-	}	
+// 2017/08/21 RMA Begin modification
+// In order to avoid using resource file in bin/resources directory and using file in src/main/resources directory
+//	/**
+//	 * @return The file XSD
+//	 */
+//	public static Path getXSD_FCTT_Path() 
+//	{
+//		Path lXSDPath = Paths.get(FCTT_Environment.getPathResources().toString(), FCTT_Constant.FILENAME_XSD_FCTT_1516_2010);
+//		
+//		return lXSDPath;
+//	}	
+// 2017/08/21 RMA End modification
 	
-	/**
-	 * @return The file XSD
-	 */
-	public static Path getXSD_DIF_Path() 
-	{
-		Path lXSDPath = Paths.get(FCTT_Environment.getPathResources().toString(), FCTT_Constant.FILENAME_XSD_DIF_1516_2010);
-		
-		return lXSDPath;
-	}	
+// 2017/08/21 RMA Begin modification
+// In order to avoid using resource file in bin/resources directory and using file in src/main/resources directory
+//	/**
+//	 * @return The file XSD
+//	 */
+//	public static Path getXSD_DIF_Path() 
+//	{
+//		Path lXSDPath = Paths.get(FCTT_Environment.getPathResources().toString(), FCTT_Constant.FILENAME_XSD_DIF_1516_2010);
+//		
+//		return lXSDPath;
+//	}	
+// 2017/08/21 RMA End modification
 
 	/**
 	 * @return string containing date

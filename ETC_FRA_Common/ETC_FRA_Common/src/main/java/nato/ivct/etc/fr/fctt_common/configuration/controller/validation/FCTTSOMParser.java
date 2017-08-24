@@ -3,17 +3,10 @@ package nato.ivct.etc.fr.fctt_common.configuration.controller.validation;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import nato.ivct.etc.fr.fctt_common.configuration.model.validation.FCTTParserServices;
-import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.Pair;
-import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.fomparser.Utils;
-import nato.ivct.etc.fr.fctt_common.resultServices.model.ServiceHLA;
-import nato.ivct.etc.fr.fctt_common.utils.FCTT_Constant;
-import nato.ivct.etc.fr.fctt_common.utils.FCTT_Environment;
-import nato.ivct.etc.fr.fctt_common.utils.FCTT_Enum.eModelState;
 
 import org.eclipse.emf.common.util.EList;
 import org.jdom2.Document;
@@ -30,6 +23,12 @@ import fr.itcs.sme.architecture.technical.ISimEntityClass;
 import fr.itcs.sme.architecture.technical.ISimInteractionClass;
 import fr.itcs.sme.architecture.technical.ISimModel;
 import fr.itcs.sme.base.Metadata;
+import nato.ivct.etc.fr.fctt_common.configuration.model.validation.FCTTParserServices;
+import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.Pair;
+import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.fomparser.Utils;
+import nato.ivct.etc.fr.fctt_common.resultServices.model.ServiceHLA;
+import nato.ivct.etc.fr.fctt_common.utils.FCTT_Constant;
+import nato.ivct.etc.fr.fctt_common.utils.FCTT_Enum.eModelState;
 
 /**
  * This class parse the SOM 
@@ -150,8 +149,13 @@ public class FCTTSOMParser
 		Document doc = new Document();
 		for (String lPath : inputs)
 		{
-			File lxsdfile = FCTT_Environment.getXSD_FCTT_Path().toFile();
-			XMLReaderJDOMFactory factory = new XMLReaderXSDFactory(lxsdfile);
+// 2017/08/21 RMA Begin modification
+// In order to avoid using resource file in bin/resources directory and using file in src/main/resources directory
+//			File lxsdfile = FCTT_Environment.getXSD_FCTT_Path().toFile();
+//			XMLReaderJDOMFactory factory = new XMLReaderXSDFactory(lxsdfile);
+			URL lxsdURL = this.getClass().getClassLoader().getResource(FCTT_Constant.FILENAME_XSD_FCTT_1516_2010);
+			XMLReaderJDOMFactory factory = new XMLReaderXSDFactory(lxsdURL);
+// 2017/08/21 RMA End modification
 			SAXBuilder sb = new SAXBuilder(factory);
 			doc = sb.build(new File(lPath));	
 

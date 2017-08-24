@@ -3,9 +3,9 @@ package nato.ivct.etc.fr.fctt_common.configuration.controller.validation;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
-import java.net.MalformedURLException;
-import java.nio.file.Paths;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,20 +14,9 @@ import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBException;
 
-import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.Pair;
-import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.fomparser.SimModelProvider;
-import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.fomparser.Utils;
-import nato.ivct.etc.fr.fctt_common.resultData.model.DataHLA;
-import nato.ivct.etc.fr.fctt_common.resultServices.model.ServiceHLA;
-import nato.ivct.etc.fr.fctt_common.utils.FCTT_Constant;
-import nato.ivct.etc.fr.fctt_common.utils.FCTT_Environment;
-import nato.ivct.etc.fr.fctt_common.utils.TextInternationalization;
-import nato.ivct.etc.fr.fctt_common.utils.FCTT_Enum.eModelDataHLAType;
-import nato.ivct.etc.fr.fctt_common.utils.FCTT_Enum.eModelState;
-
-import org.slf4j.Logger;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.common.util.EList;
+import org.slf4j.Logger;
 
 import fr.itcs.sme.architecture.technical.ISimAttribute;
 import fr.itcs.sme.architecture.technical.ISimEntityClass;
@@ -35,6 +24,15 @@ import fr.itcs.sme.architecture.technical.ISimInteractionClass;
 import fr.itcs.sme.architecture.technical.ISimModel;
 import fr.itcs.sme.base.Element;
 import fr.itcs.sme.base.Metadata;
+import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.Pair;
+import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.fomparser.SimModelProvider;
+import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.fomparser.Utils;
+import nato.ivct.etc.fr.fctt_common.resultData.model.DataHLA;
+import nato.ivct.etc.fr.fctt_common.resultServices.model.ServiceHLA;
+import nato.ivct.etc.fr.fctt_common.utils.FCTT_Constant;
+import nato.ivct.etc.fr.fctt_common.utils.FCTT_Enum.eModelDataHLAType;
+import nato.ivct.etc.fr.fctt_common.utils.FCTT_Enum.eModelState;
+import nato.ivct.etc.fr.fctt_common.utils.TextInternationalization;
 
 /**
  * This class check the file SOM/FOM
@@ -187,10 +185,40 @@ public class FCTTFilesCheck
 				// This ISimModel is used for the distribution.
 				//
 				mModelProviderWithMIM = new SimModelProvider();
-				java.nio.file.Path lMIMPath = Paths.get(FCTT_Environment.getPathResources().toString(), FCTT_Constant.MIM_FILE_NAME);
+// 2017/08/21 RMA Begin modification
+// In order to avoid using resource file in bin/resources directory and using file in src/main/resources directory
+//				java.nio.file.Path lMIMPath = Paths.get(FCTT_Environment.getPathResources().toString(), FCTT_Constant.MIM_FILE_NAME);
+//				logger.info("lMIMPath = "+ lMIMPath);
+//				lFOMFiles.add(lMIMPath.toString());
+				// Create a temporary file
+				final File lMIMFile = File.createTempFile("MIM", ".xml");
+				final java.nio.file.Path lMIMPath = lMIMFile.toPath();
+//				final java.nio.file.Path lMIMPath = Paths.get(
+//						Paths.get(".").toAbsolutePath().getParent().toString(), 
+//						FCTT_Constant.MIM_FILE_NAME);
+//				logger.info("lMIMPath = "+ lMIMPath);
+				// If temporary file already exist, delete it
+				if (Files.exists(lMIMPath))
+				{
+					Files.delete(lMIMPath);
+				}
+				// Copy stream file (in jar) to temporary file
+				try (final InputStream lMIMStream = this.getClass().getClassLoader().getResourceAsStream(FCTT_Constant.MIM_FILE_NAME);
+						)	{
+//					logger.info("lMIMStream = "+ lMIMStream );
+//					logger.info("Available = "+ lMIMStream.available() );
+					final long nbCopies = Files.copy(lMIMStream, lMIMPath);
+//					logger.info("Copy OK - " + nbCopies + " bytes");
+				}
+// 2017/08/21 RMA End modification
 				lFOMFiles.add(lMIMPath.toString());
 				mDataModelSimulationForDistribution = mModelProviderWithMIM.parse(ArrayPathToList(lFOMFiles), new Path(lMergedFOMfile), true);
 
+// 2017/08/21 RMA Begin modification
+// In order to avoid using resource file in bin/resources directory and using file in src/main/resources directory
+				// Delete temporary file
+				Files.delete(lMIMPath);
+// 2017/08/21 RMA End modification				
 				WriteMessage(lWriter,TextInternationalization.getString("files.check.reportFile.resFOMFiles") + StringResult(true) + "\n");
 				mResTestParseFOM = true;
 			}
@@ -219,7 +247,27 @@ public class FCTTFilesCheck
 				// Merge SOM modules
 				//
 				String lMergedSOMFile = workingDir + File.separator + FCTT_Constant.MERGED_NAME_SOM;
-				mModelProviderWithoutMIM.mergeFOMModules(ArrayPathToList(lSOMFiles), new Path(lMergedSOMFile),FCTT_Environment.getXSD_FCTT_Path().toFile());
+// 2017/08/21 RMA Begin modification
+// In order to avoid using resource file in bin/resources directory and using file in src/main/resources directory
+//				mModelProviderWithoutMIM.mergeFOMModules(ArrayPathToList(lSOMFiles), new Path(lMergedSOMFile),FCTT_Environment.getXSD_FCTT_Path().toFile());
+				// Create a temporary file
+				final File lXSDFCTTFile = File.createTempFile("XSDFCTT", ".xml");
+				final java.nio.file.Path lXSDFCTTPath = lXSDFCTTFile.toPath();
+				// If temporary file already exist, delete it
+				if (Files.exists(lXSDFCTTPath))
+				{
+					Files.delete(lXSDFCTTPath);
+				}
+				// Copy stream file (in jar) to temporary file
+				try (final InputStream lXSDFCTTStream = this.getClass().getClassLoader().getResourceAsStream(FCTT_Constant.FILENAME_XSD_FCTT_1516_2010);
+						)	{
+					final long nbCopies = Files.copy(lXSDFCTTStream, lXSDFCTTPath);
+				}
+				mModelProviderWithoutMIM.mergeFOMModules(ArrayPathToList(lSOMFiles), new Path(lMergedSOMFile), lXSDFCTTFile);
+				// Delete temporary file
+				Files.delete(lXSDFCTTPath);
+// 2017/08/21 RMA End modification
+				
 
 				//
 				// Parse SOM modules
@@ -340,7 +388,7 @@ public class FCTTFilesCheck
 					PrintArrayListString(mRulesChecker.getListAssert(),lWriter);
 				}
 			} 
-			catch (MalformedURLException | JAXBException pException) 
+			catch (JAXBException | IOException pException) 
 			{
 				logger.error(TextInternationalization.getString("files.check.error.rules") + ":" + pException.getLocalizedMessage());
 

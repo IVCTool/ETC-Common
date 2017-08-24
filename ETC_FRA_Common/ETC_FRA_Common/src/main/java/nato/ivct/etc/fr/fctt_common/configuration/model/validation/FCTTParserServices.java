@@ -1,21 +1,21 @@
 package nato.ivct.etc.fr.fctt_common.configuration.model.validation;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import org.slf4j.Logger;
+
 import javafx.collections.ObservableList;
 import nato.ivct.etc.fr.fctt_common.resultServices.model.ServiceHLA;
-import nato.ivct.etc.fr.fctt_common.utils.FCTT_Environment;
-import nato.ivct.etc.fr.fctt_common.utils.TextInternationalization;
 import nato.ivct.etc.fr.fctt_common.utils.FCTT_Enum.eModelServiceHLAType;
 import nato.ivct.etc.fr.fctt_common.utils.FCTT_Enum.eModelState;
-
-import org.slf4j.Logger;
+import nato.ivct.etc.fr.fctt_common.utils.TextInternationalization;
 
 /**
  * This class read the file containing the service and
@@ -53,8 +53,25 @@ public class FCTTParserServices
 	{
 		ServiceHLA lRoot = new ServiceHLA(TextInternationalization.getString("content.root"), null);
 
-		Path lFilePath = Paths.get(FCTT_Environment.getPathResources().toString(), FILE_SERVICE);
-		List<String> lLines = Files.readAllLines(lFilePath);
+// 2017/08/21 RMA Begin modification
+// In order to avoid using resource file in bin/resources directory and using file in src/main/resources directory
+//		Path lFilePath = Paths.get(FCTT_Environment.getPathResources().toString(), FILE_SERVICE);
+//		List<String> lLines = Files.readAllLines(lFilePath);
+		// Create a temporary file
+		final File lServicesFile = File.createTempFile("Services", ".xml");
+		final Path lServicesPath = lServicesFile.toPath();
+		// If temporary file already exist, delete it
+		if (Files.exists(lServicesPath))
+		{
+			Files.delete(lServicesPath);
+		}
+		// Copy stream file (in jar) to temporary file
+		try (final InputStream lServicesStream = this.getClass().getClassLoader().getResourceAsStream(FILE_SERVICE);
+				)	{
+			final long nbCopies = Files.copy(lServicesStream, lServicesPath);
+		}
+		List<String> lLines = Files.readAllLines(lServicesPath);
+// 2017/08/21 RMA End modification
 		ServiceHLA lCurrentGroupServices = new ServiceHLA();
 		for(String lLine:lLines)
 		{
@@ -112,6 +129,13 @@ public class FCTTParserServices
 				}
 			}
 		}
+
+// 2017/08/21 RMA Begin modification
+// In order to avoid using resource file in bin/resources directory and using file in src/main/resources directory
+		// Delete temporary file
+		Files.delete(lServicesPath);
+// 2017/08/21 RMA End modification				
+
 
 		return lRoot;
 	}

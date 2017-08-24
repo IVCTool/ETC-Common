@@ -1,10 +1,9 @@
 package nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.fomparser;
 
 import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.HashMap;
-
-import nato.ivct.etc.fr.fctt_common.utils.FCTT_Constant;
-import nato.ivct.etc.fr.fctt_common.utils.FCTT_Environment;
 
 import org.eclipse.core.runtime.IPath;
 
@@ -15,6 +14,7 @@ import fr.itcs.sme.architecture.technical.TechnicalFactory;
 import fr.itcs.sme.architecture.technical.types.IType;
 import fr.itcs.sme.architecture.technical.types.TypeSystem;
 import fr.itcs.sme.architecture.technical.types.TypesFactory;
+import nato.ivct.etc.fr.fctt_common.utils.FCTT_Constant;
 
 /**
  * Import the simulation model of 1516 2010 modular FOM
@@ -107,8 +107,27 @@ public class SimModelProvider
 		getDomain().setDescription("HLA 1516e Imported Domain");
 
 		// Here we merge the modules to import (and it also validate them)
-		File mergedFOMFile = mergeFOMModules(inputs,mergedFile, FCTT_Environment.getXSD_DIF_Path().toFile());
-
+// 2017/08/21 RMA Begin modification
+// In order to avoid using resource file in bin/resources directory and using file in src/main/resources directory
+//		File mergedFOMFile = mergeFOMModules(inputs,mergedFile, FCTT_Environment.getXSD_DIF_Path().toFile());
+		// Create a temporary file
+		final File lXSDDIFFile = File.createTempFile("XSDDIF", ".xml");
+		final java.nio.file.Path lXSDDIFPath = lXSDDIFFile.toPath();
+		// If temporary file already exist, delete it
+		if (Files.exists(lXSDDIFPath))
+		{
+			Files.delete(lXSDDIFPath);
+		}
+		// Copy stream file (in jar) to temporary file
+		try (final InputStream lXSDDIFtream = this.getClass().getClassLoader().getResourceAsStream(FCTT_Constant.FILENAME_XSD_DIF_1516_2010);
+				)	{
+			final long nbCopies = Files.copy(lXSDDIFtream, lXSDDIFPath);
+		}
+		File mergedFOMFile = mergeFOMModules(inputs, mergedFile, lXSDDIFFile);
+		// Delete temporary file
+		Files.delete(lXSDDIFPath);
+// 2017/08/21 RMA End modification
+		
 		File dir = getInputsDir(inputs);
 
 		// Create the Hla1516e FOM reader.
