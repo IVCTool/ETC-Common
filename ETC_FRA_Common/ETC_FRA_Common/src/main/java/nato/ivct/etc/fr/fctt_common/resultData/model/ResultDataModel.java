@@ -278,7 +278,10 @@ public class ResultDataModel
 					// Data certificated
 					if (pBuildResults == eBuildResults.DataCertificated)
 					{
-						lCurrentNodeBuffer = FormatResultData(pFormatter, pCurrentNode, lTabulation);
+						// 2017/11/15 ETC FRA V1.3, Capgemini, to avoid "NoInformation" in results files
+						if ((pCurrentNode.sendingStateProperty().get() != eModelState.NoInformation) &&
+							(pCurrentNode.receptionStateProperty().get() != eModelState.NoInformation))
+								lCurrentNodeBuffer = FormatResultData(pFormatter, pCurrentNode, lTabulation);
 					}
 				}
 			}

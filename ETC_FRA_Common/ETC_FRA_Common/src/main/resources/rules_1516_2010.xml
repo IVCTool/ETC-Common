@@ -40,7 +40,9 @@
 
 	<iso:pattern abstract="true" id="implique4">
      <iso:rule context="dp:serviceUtilization">
-      <iso:assert test="dp:$p1/@isUsed='false' or dp:$p2/@isUsed='true' or $p3/@isUsed='true' or dp:$p4/@isUsed='true' or dp:$p5/@isUsed='true'">$p1 => $p2 or $p3 or $p4 or $p5
+	  <!-- 2017/11/15 ETC FRA V1.3, Capgemini, error in rule -->
+      <!-- <iso:assert test="dp:$p1/@isUsed='false' or dp:$p2/@isUsed='true' or $p3/@isUsed='true' or dp:$p4/@isUsed='true' or dp:$p5/@isUsed='true'">$p1 => $p2 or $p3 or $p4 or $p5 -->
+      <iso:assert test="dp:$p1/@isUsed='false' or dp:$p2/@isUsed='true' or dp:$p3/@isUsed='true' or dp:$p4/@isUsed='true' or dp:$p5/@isUsed='true'">$p1 => $p2 or $p3 or $p4 or $p5
 <iso:value-of select="dp:$p1/@isUsed"/> => <iso:value-of select="dp:$p2/@isUsed"/> or <iso:value-of select="dp:$p3/@isUsed"/> or <iso:value-of select="dp:$p4/@isUsed"/> or <iso:value-of select="dp:$p5/@isUsed"/>
       </iso:assert>  
      </iso:rule>
@@ -48,7 +50,9 @@
 
 	<iso:pattern abstract="true" id="implique5">
      <iso:rule context="dp:serviceUtilization">
-      <iso:assert test="dp:$p1/@isUsed='false' or dp:$p2/@isUsed='true' or dp:$p3/@isUsed='true' or dp:$p4/@isUsed='true' or $p5/@isUsed='true' or $p6/@isUsed='true'">$p1 => $p2 or $p3 or $p4 or $p5 or $p6
+	  <!-- 2017/11/15 ETC FRA V1.3, Capgemini, error in rule -->
+	  <!-- <iso:assert test="dp:$p1/@isUsed='false' or dp:$p2/@isUsed='true' or dp:$p3/@isUsed='true' or dp:$p4/@isUsed='true' or $p5/@isUsed='true' or $p6/@isUsed='true'">$p1 => $p2 or $p3 or $p4 or $p5 or $p6 -->
+	  <iso:assert test="dp:$p1/@isUsed='false' or dp:$p2/@isUsed='true' or dp:$p3/@isUsed='true' or dp:$p4/@isUsed='true' or dp:$p5/@isUsed='true' or dp:$p6/@isUsed='true'">$p1 => $p2 or $p3 or $p4 or $p5 or $p6
 <iso:value-of select="dp:$p1/@isUsed"/> => <iso:value-of select="dp:$p2/@isUsed"/> or <iso:value-of select="dp:$p3/@isUsed"/> or <iso:value-of select="dp:$p4/@isUsed"/> or <iso:value-of select="dp:$p5/@isUsed"/> or <iso:value-of select="dp:$p6/@isUsed"/>
       </iso:assert>  
      </iso:rule>
@@ -757,11 +761,18 @@
 		<iso:param name="p3" value="((count(//dp:attribute[dp:sharing='PublishSubscribe']) + count(//dp:attribute[dp:sharing='Subscribe']))> 0)" />
 	</iso:pattern>
 
+	<!-- 2017/11/15 ETC FRA V1.3, Capgemini, invalid rule -->
+	<!-- <iso:pattern is-a="egal_servobj_3" id="egal_servobj7"> -->
+		<!-- <iso:param name="p1" value="serviceUtilization/dp:confirmDivestiture" /> -->
+		<!-- <iso:param name="p2" value="serviceUtilization/dp:unconditionalAttributeOwnershipDivestiture" /> -->
+		<!-- <iso:param name="p3" value="serviceUtilization/dp:attributeOwnershipDivestitureIfWanted" /> -->
+		<!-- <iso:param name="p4" value="((count(//dp:interactionClass[dp:ownership='DivestAcquire']) + count(//dp:interactionClass[dp:ownership='Divest']))> 0)" /> -->
+	<!-- </iso:pattern> -->
 	<iso:pattern is-a="egal_servobj_3" id="egal_servobj7">
 		<iso:param name="p1" value="serviceUtilization/dp:confirmDivestiture" />
 		<iso:param name="p2" value="serviceUtilization/dp:unconditionalAttributeOwnershipDivestiture" />
 		<iso:param name="p3" value="serviceUtilization/dp:attributeOwnershipDivestitureIfWanted" />
-		<iso:param name="p4" value="((count(//dp:interactionClass[dp:ownership='DivestAcquire']) + count(//dp:interactionClass[dp:ownership='Divest']))> 0)" />
+		<iso:param name="p4" value="((count(//dp:attribute[dp:ownership='DivestAcquire']) + count(//dp:attribute[dp:ownership='Divest']))> 0)" />
 	</iso:pattern>
 
 	<iso:pattern is-a="implique_servobj" id="implique_servobj1">
