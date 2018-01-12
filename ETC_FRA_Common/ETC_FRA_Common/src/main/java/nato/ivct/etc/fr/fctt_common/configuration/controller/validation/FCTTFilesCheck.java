@@ -25,6 +25,8 @@ import fr.itcs.sme.architecture.technical.ISimModel;
 import fr.itcs.sme.base.Element;
 import fr.itcs.sme.base.Metadata;
 import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.Pair;
+import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.fomparser.ServiceUtilizationDefinedInOtherSOMException;
+import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.fomparser.ServiceUtilizationNotIn1stSOMException;
 import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.fomparser.SimModelProvider;
 import nato.ivct.etc.fr.fctt_common.configuration.model.validation.parser1516e.fomparser.Utils;
 import nato.ivct.etc.fr.fctt_common.resultData.model.DataHLA;
@@ -147,6 +149,10 @@ public class FCTTFilesCheck
 		List<String> lSOMFiles = new ArrayList<String>();
 		String lsomFile = null;
 		boolean lCheckFiles = true;
+		// 2018/01/09 ETC FRA 1.4, Capgemini, to generate result message for TS_HLA_Declaration, TS_HLA_Object and TS_HLA_Services
+		String lMessage = null;
+		boolean lTraceLog = true;
+		
 
 		lFOMFiles.addAll(fomFiles);
 		lSOMFiles.addAll(somFiles);
@@ -157,7 +163,11 @@ public class FCTTFilesCheck
 		{
 			// Open file
 			if (resultFile != null)
+			{
 				lWriter = new FileWriter(resultFile);
+				// 2018/01/09 ETC FRA 1.4, Capgemini, to generate result message for TS_HLA_Declaration, TS_HLA_Object and TS_HLA_Services
+				lTraceLog = false;
+			}
 			
 			WriteMessage(lWriter ,FCTT_Constant.REPORT_FILE_SEPARATOR);
 			WriteMessage(lWriter ,TextInternationalization.getString("files.check.reportFile.federateName")	+ sutName + "\n");
@@ -218,15 +228,22 @@ public class FCTTFilesCheck
 // In order to avoid using resource file in bin/resources directory and using file in src/main/resources directory
 				// Delete temporary file
 				Files.delete(lMIMPath);
-// 2017/08/21 RMA End modification				
-				WriteMessage(lWriter,TextInternationalization.getString("files.check.reportFile.resFOMFiles") + StringResult(true) + "\n");
+// 2017/08/21 RMA End modification	
+
+				// 2018/01/09 ETC FRA 1.4, Capgemini, to generate result message for TS_HLA_Declaration, TS_HLA_Object and TS_HLA_Services
+				lMessage = TextInternationalization.getString("files.check.reportFile.resFOMFiles") + StringResult(true) + "\n";
+				if (lTraceLog) logger.info(lMessage);
+				WriteMessage(lWriter, lMessage);
 				mResTestParseFOM = true;
 			}
 			catch (Exception pException) 
 			{
+				// 2018/01/09 ETC FRA 1.4, Capgemini, to generate result message for TS_HLA_Declaration, TS_HLA_Object and TS_HLA_Services
+				lMessage = TextInternationalization.getString("files.check.reportFile.resFOMFiles") + StringResult(false) + "\n";
+				if (lTraceLog) logger.info(lMessage);
 				logger.error(TextInternationalization.getString("files.check.error.FOM.parse") + ":" + pException.getLocalizedMessage());
 
-				WriteMessage(lWriter,TextInternationalization.getString("files.check.reportFile.resFOMFiles") + StringResult(false) + "\n");
+				WriteMessage(lWriter,lMessage);
 				WriteMessage(lWriter,pException.getLocalizedMessage());
 
 				return false;
@@ -263,7 +280,45 @@ public class FCTTFilesCheck
 						)	{
 					final long nbCopies = Files.copy(lXSDFCTTStream, lXSDFCTTPath);
 				}
-				mModelProviderWithoutMIM.mergeFOMModules(ArrayPathToList(lSOMFiles), new Path(lMergedSOMFile), lXSDFCTTFile);
+				
+				// Begin 2018/01/09 ETC FRA 1.4, Capgemini, to check that serviceUtilization defined only in 1st SOM
+				// mModelProviderWithoutMIM.mergeFOMModules(ArrayPathToList(lSOMFiles), new Path(lMergedSOMFile), lXSDFCTTFile);
+				try {
+					mModelProviderWithoutMIM.mergeFOMModules(ArrayPathToList(lSOMFiles), new Path(lMergedSOMFile),lXSDFCTTFile, true);
+				} 
+				// No serviceUtilization in first SOM file 
+				catch (ServiceUtilizationNotIn1stSOMException pException)
+				{
+					String lError = TextInternationalization.getString("files.check.SOM.services.notIn1stSOM") +
+								pException.getMessage();
+					logger.error(TextInternationalization.getString("files.check.error.SOM.parse") + ": " + lError);
+
+					// 2018/01/09 ETC FRA 1.4, Capgemini, to generate result message for TS_HLA_Declaration, TS_HLA_Object and TS_HLA_Services
+					lMessage = TextInternationalization.getString("files.check.reportFile.resSOMFiles") + StringResult(false) + "\n";
+					if (lTraceLog) logger.info(lMessage);
+					WriteMessage(lWriter, lMessage);
+					WriteMessage(lWriter, lError);
+
+					return false;
+				}
+				// serviceUtilization defined in SOM file which is not the first SOM file
+				catch (ServiceUtilizationDefinedInOtherSOMException pException)
+				{
+					String lError = TextInternationalization.getString("files.check.SOM.services.definedInOtherSOMBegin") +
+								pException.getMessage() + " " + TextInternationalization.getString("files.check.SOM.services.definedInOtherSOMEnd");
+					logger.error(TextInternationalization.getString("files.check.error.SOM.parse") + ": " + lError);
+
+					// 2018/01/09 ETC FRA 1.4, Capgemini, to generate result message for TS_HLA_Declaration, TS_HLA_Object and TS_HLA_Services
+					lMessage = TextInternationalization.getString("files.check.reportFile.resSOMFiles") + StringResult(false) + "\n";
+					if (lTraceLog) logger.info(lMessage);
+					WriteMessage(lWriter, lMessage);
+					WriteMessage(lWriter, lError);
+
+					return false;
+				}
+				// End 2018/01/04 FCTT NG V1.4, Capgemini, to check that serviceUtilization defined only in 1st SOM
+
+				
 				// Delete temporary file
 				Files.delete(lXSDFCTTPath);
 // 2017/08/21 RMA End modification
@@ -287,11 +342,17 @@ public class FCTTFilesCheck
 
 				mSOMParser.parsingSOM(lsomFile);
 
-				WriteMessage(lWriter,TextInternationalization.getString("files.check.reportFile.resSOMFiles") + StringResult(true) + "\n");
+				// 2018/01/09 ETC FRA 1.4, Capgemini, to generate result message for TS_HLA_Declaration, TS_HLA_Object and TS_HLA_Services
+				lMessage = TextInternationalization.getString("files.check.reportFile.resSOMFiles") + StringResult(true) + "\n";
+				if (lTraceLog) logger.info(lMessage);
+				WriteMessage(lWriter, lMessage);
 			}	
 			catch (Exception pException) 
 			{
-				WriteMessage(lWriter,TextInternationalization.getString("files.check.reportFile.resSOMFiles") + StringResult(false) + "\n");
+				// 2018/01/09 ETC FRA 1.4, Capgemini, to generate result message for TS_HLA_Declaration, TS_HLA_Object and TS_HLA_Services
+				lMessage = TextInternationalization.getString("files.check.reportFile.resSOMFiles") + StringResult(false) + "\n";
+				if (lTraceLog) logger.info(lMessage);
+				WriteMessage(lWriter,lMessage);
 				logger.error(TextInternationalization.getString("files.check.error.SOM.parse") + ":" + pException.getLocalizedMessage());
 				WriteMessage(lWriter,pException.getLocalizedMessage());
 
@@ -305,8 +366,11 @@ public class FCTTFilesCheck
 			mResTestInclude = !mSOMParser.IsElemNotInFom();
 			WriteMessage(lWriter,FCTT_Constant.REPORT_FILE_SEPARATOR);
 			logger.info(TextInternationalization.getString("files.check.SOM_IN_FOM"));
-			WriteMessage(lWriter,TextInternationalization.getString("files.check.reportFile.resSOMInFOM") 
-					+ StringResult(mResTestInclude) + "\n");
+			// 2018/01/09 ETC FRA 1.4, Capgemini, to generate result message for TS_HLA_Declaration, TS_HLA_Object and TS_HLA_Services
+			lMessage = TextInternationalization.getString("files.check.reportFile.resSOMInFOM") 
+					+ StringResult(mResTestInclude) + "\n";
+			if (lTraceLog) logger.info(lMessage);
+			WriteMessage(lWriter,lMessage);
 
 			// Write in the report file the list of objects classes and interactions not present in FOM
 			if (!mResTestInclude)
@@ -337,13 +401,16 @@ public class FCTTFilesCheck
 			
 			WriteMessage(lWriter,FCTT_Constant.REPORT_FILE_SEPARATOR);
 			logger.info(TextInternationalization.getString("files.check.sharing"));
-			WriteMessage(lWriter,TextInternationalization.getString("files.check.reportFile.resSharing") 
-					+ StringResult(mResTestParseSOM) + "\n");
+			// 2018/01/09 ETC FRA 1.4, Capgemini, to generate result message for TS_HLA_Declaration, TS_HLA_Object and TS_HLA_Services
+			lMessage = TextInternationalization.getString("files.check.reportFile.resSharing") 
+					+ StringResult(mResTestParseSOM) + "\n";
+			if (lTraceLog) logger.info(lMessage);
+			WriteMessage(lWriter,lMessage);
 
 			// Write in the report file the sharing errors.
 			if (!mResTestParseSOM) 
 			{
-				WriteMessage(lWriter,TextInternationalization.getString("files.check.error.sharing"));
+				WriteMessage(lWriter,TextInternationalization.getString("files.check.error.sharing") + "\n");
 				WriteMessage(lWriter,TextInternationalization.getString("files.check.reportFile.sharingErrors"));
 				PrintShareErrors(mSOMParser.getListSharDiff(),lWriter);
 			} 
@@ -380,8 +447,11 @@ public class FCTTFilesCheck
 				mResTestRules = mRulesChecker.checkRules(lsomFile);
 				WriteMessage(lWriter,FCTT_Constant.REPORT_FILE_SEPARATOR);
 				logger.info(TextInternationalization.getString("files.check.rules"));
-				WriteMessage(lWriter,TextInternationalization.getString("files.check.reportFile.resultTest")
-						+ StringResult(mResTestRules) + "\n");
+				// 2018/01/09 ETC FRA 1.4, Capgemini, to generate result message for TS_HLA_Declaration, TS_HLA_Object and TS_HLA_Services
+				lMessage = TextInternationalization.getString("files.check.reportFile.resultTest")
+						+ StringResult(mResTestRules) + "\n";
+				if (lTraceLog) logger.info(lMessage);
+				WriteMessage(lWriter,lMessage);
 
 				if (!mResTestRules)
 				{
@@ -390,10 +460,13 @@ public class FCTTFilesCheck
 			} 
 			catch (JAXBException | IOException pException) 
 			{
+				// 2018/01/09 ETC FRA 1.4, Capgemini, to generate result message for TS_HLA_Declaration, TS_HLA_Object and TS_HLA_Services
+				lMessage = TextInternationalization.getString("files.check.reportFile.resultTest") + StringResult(false) + "\n";
+				if (lTraceLog) logger.info(lMessage);
 				logger.error(TextInternationalization.getString("files.check.error.rules") + ":" + pException.getLocalizedMessage());
 
 				WriteMessage(lWriter,FCTT_Constant.REPORT_FILE_SEPARATOR);
-				WriteMessage(lWriter,TextInternationalization.getString("files.check.reportFile.resultTest") + StringResult(false) + "\n");
+				WriteMessage(lWriter,lMessage);
 				WriteMessage(lWriter,pException.getLocalizedMessage());
 
 				if (csVerification)

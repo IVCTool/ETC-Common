@@ -123,7 +123,9 @@ public class SimModelProvider
 				)	{
 			final long nbCopies = Files.copy(lXSDDIFtream, lXSDDIFPath);
 		}
-		File mergedFOMFile = mergeFOMModules(inputs, mergedFile, lXSDDIFFile);
+		// 2018/01/09 ETC FRA 1.4, Capgemini, to check that serviceUtilization defined only in 1st SOM
+		// File mergedFOMFile = mergeFOMModules(inputs, mergedFile, lXSDDIFFile);
+		File mergedFOMFile = mergeFOMModules(inputs,mergedFile, lXSDDIFFile, false);
 		// Delete temporary file
 		Files.delete(lXSDDIFPath);
 // 2017/08/21 RMA End modification
@@ -144,7 +146,9 @@ public class SimModelProvider
 		return getDomain();
 	}
 
-	public File mergeFOMModules(IPath[] inputs, IPath mergedFile, File pSchemaFile) throws Exception
+	// 2018/01/09 ETC FRA 1.4, Capgemini, to check that serviceUtilization defined only in 1st SOM
+//	public File mergeFOMModules(IPath[] inputs, IPath mergedFile, File pSchemaFile) throws Exception
+	public File mergeFOMModules(IPath[] inputs, IPath mergedFile, File pSchemaFile, boolean testServiceUtilization) throws Exception
 	{
 		if ((inputs!=null)&&(inputs.length>0))
 		{
@@ -154,10 +158,14 @@ public class SimModelProvider
 			}
 			else
 			{
-				FDD1516EvolvedMerger merger = new FDD1516EvolvedMerger(new File(inputs[0].toOSString()),pSchemaFile);
+			    // 2018/01/09 ETC FRA 1.4, Capgemini, to check that serviceUtilization defined only in 1st SOM
+//				FDD1516EvolvedMerger merger = new FDD1516EvolvedMerger(new File(inputs[0].toOSString()),pSchemaFile);
+				FDD1516EvolvedMerger merger = new FDD1516EvolvedMerger(new File(inputs[0].toOSString()),pSchemaFile, testServiceUtilization);
 				for (int i = 1; i < inputs.length; i++) 
 				{
-					merger.merge(new File(inputs[i].toOSString()));
+					// 2018/01/09 ETC FRA 1.4, Capgemini, to check that serviceUtilization defined only in 1st SOM
+//					merger.merge(new File(inputs[i].toOSString()));
+					merger.merge(new File(inputs[i].toOSString()), testServiceUtilization);
 				}
 				File mergedFOMFile = new File(mergedFile.toOSString());
 				merger.saveAs(mergedFOMFile);

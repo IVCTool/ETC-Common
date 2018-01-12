@@ -18,11 +18,20 @@ public class FDD1516EvolvedMerger
 	private Element _eFDD;
 	private File _schemaFile;
 
-	public FDD1516EvolvedMerger(File fddFile, File pSchemaFile) throws Exception
+	// 2018/01/09 ETC FRA 1.4, Capgemini, to check that serviceUtilization defined only in 1st SOM
+//	public FDD1516EvolvedMerger(File fddFile, File pSchemaFile) throws Exception
+	public FDD1516EvolvedMerger(File fddFile, File pSchemaFile, boolean testServiceUtilization) throws Exception
+
 	{
 		_schemaFile = pSchemaFile;
 
 		_eFDD = XMLUtils.readFile(fddFile,_schemaFile);
+		
+		// 2018/01/09 ETC FRA 1.4, Capgemini, to check that serviceUtilization defined only in 1st SOM 
+		if (testServiceUtilization) {
+			Element eServ = _eFDD.element("serviceUtilization");
+			if (eServ == null) throw new ServiceUtilizationNotIn1stSOMException	(fddFile.getName());
+		}
 	}
 
 // 2017/08/21 RMA Begin modification
@@ -34,7 +43,9 @@ public class FDD1516EvolvedMerger
 //	}
 // 2017/08/21 RMA End modification
 	
-	public void merge(File bomFile) throws Exception
+	// 2018/01/09 ETC FRA 1.4, Capgemini, to check that serviceUtilization defined only in 1st SOM 
+//	public void merge(File bomFile) throws Exception
+	public void merge(File bomFile, boolean testServiceUtilization) throws Exception
 	{
 		Element eBOM = XMLUtils.readFile(bomFile,_schemaFile);
 
@@ -75,37 +86,48 @@ public class FDD1516EvolvedMerger
 		}
 
 		// merge services
-		Element eServ = eBOM.element("serviceUtilization");
-		if (eServ != null)
+		// Begin 2018/01/09 ETC FRA 1.4, Capgemini, to check that serviceUtilization defined only in 1st SOM 
+		// Element eServ = eBOM.element("serviceUtilization");
+		// if (eServ != null)
+		// {
+			// Element eDst = XMLUtils.getOrCreateElt(_eFDD, "serviceUtilization");
+			// Iterator it = eServ.elementIterator();
+			// while (it.hasNext())
+			// {
+				// Element elem = (Element)it.next();
+
+
+				// Iterator itdest = eDst.elementIterator();
+				// boolean findelem = false;
+				// while (itdest.hasNext())
+				// {
+					// Element elemdst = (Element)itdest.next();
+					// if (elemdst.getName().equals(elem.getName())) {
+						// if (elemdst.attributeValue("isUsed").equals("true")) {
+
+						// } else {
+							// elemdst.addAttribute("isUsed",elem.attributeValue("isUsed"));
+						// }
+						// findelem = true;
+						// break;
+					// }
+				// }
+				// if (!findelem)
+				// {
+					// eDst.add(elem.createCopy());
+				// }
+			// }
+		// }
+		// test serviceUtilization
+		if (testServiceUtilization)
 		{
-			Element eDst = XMLUtils.getOrCreateElt(_eFDD, "serviceUtilization");
-			Iterator it = eServ.elementIterator();
-			while (it.hasNext())
+			Element eServ = eBOM.element("serviceUtilization");
+			if (eServ != null)
 			{
-				Element elem = (Element)it.next();
-
-
-				Iterator itdest = eDst.elementIterator();
-				boolean findelem = false;
-				while (itdest.hasNext())
-				{
-					Element elemdst = (Element)itdest.next();
-					if (elemdst.getName().equals(elem.getName())) {
-						if (elemdst.attributeValue("isUsed").equals("true")) {
-
-						} else {
-							elemdst.addAttribute("isUsed",elem.attributeValue("isUsed"));
-						}
-						findelem = true;
-						break;
-					}
-				}
-				if (!findelem)
-				{
-					eDst.add(elem.createCopy());
-				}
+				throw new ServiceUtilizationDefinedInOtherSOMException(bomFile.getName());
 			}
 		}
+		// End 2018/01/09 ETC FRA 1.4, Capgemini, to check that serviceUtilization defined only in 1st SOM 
 	}
 
 	public void saveAs(File fddFile) throws Exception
