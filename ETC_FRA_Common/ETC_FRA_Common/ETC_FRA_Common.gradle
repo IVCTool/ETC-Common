@@ -3,9 +3,9 @@ apply plugin: 'application'
 mainClassName = 'nato.ivct.etc.fr.fctt_common'
 
 dependencies {
-	compile     group: 'msg134-ivct-framework', name: 'IEEE1516e', version: ivctVersion
-	compile     group: 'msg134-ivct-framework', name: 'TC', version: ivctVersion
-
+	compileOnly libraries.ieee
+	compileOnly libraries.tc_lib
+	
 	compile     libraries.slf4j_api
 	compile     fileTree(dir: 'libs', include: '*.jar')
 	compile     files('libs/com.springsource.org.dom4j-1.6.1.jar')
@@ -29,7 +29,7 @@ dependencies {
 	compile     files('libs/org.eclipse.emf.edit_2.5.0.v200906151043.jar')
 	compile     files('libs/probatron.jar')
 	compile     files('libs/xercesImpl.jar')
-	
+
 	runtime     libraries.slf4j_jcl_over_slf4j
 	runtime     libraries.slf4j_jul_to_slf4j
 	runtime     libraries.slf4j_log4j_over_slf4j

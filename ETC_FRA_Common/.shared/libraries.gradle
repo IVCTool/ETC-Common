@@ -9,10 +9,10 @@ ext {
         gradleWrapperVersion = "${gradleVersion}"
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~ IVCT settings
-		ivctVersion = '0.3.1'
-		
+		ivctVersion = '1.0.2-SNAPSHOT'
+
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~ ETC_FRA_Common settings
-		ETC_FRA_CommonVersion = '1.0.0'
+		ETC_FRA_CommonVersion = '1.0.2-SNAPSHOT'
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~ testing
         junitVersion = '4.+'
@@ -22,7 +22,8 @@ ext {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~  now create libraries with the versions from above
 		libraries = [
-
+                tc_lib:                         "io.github.msg134:TC-lib:${ivctVersion}",
+                ieee:                           "io.github.msg134:IEEE1516e:${ivctVersion}",
 
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~ thirdparty
                 slf4j_api:                      "org.slf4j:slf4j-api:${slf4jVersion}",
